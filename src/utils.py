@@ -1,6 +1,12 @@
 import pandas as pd 
 import fastparquet 
 
+def if_else_specie(x, specie=2474):
+    if int(x)==2474:
+        return 1
+    else: 
+        return 0
+    
 def merge_metadata_data(path_metadata, path_data, common_column="surveyId"):
     """
     Merge two dataframes combining the given column. It uses the Inner join.
@@ -22,6 +28,9 @@ def merge_metadata_data(path_metadata, path_data, common_column="surveyId"):
                    axis=1,
                    join='inner')
     df.reset_index(inplace=True)
+    
+    df['predict'] = df['speciesId'].apply(lambda x:if_else_specie(x))
+    
     return df
 
 
