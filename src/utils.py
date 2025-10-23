@@ -35,26 +35,3 @@ def merge_metadata_data(path_metadata, path_data, common_column="surveyId"):
 
 
 
-def get_feature_names(preprocessor, numeric_features, categorical_features):
-    """Get feature names from ColumnTransformer
-    It includes the new generated columns by the OneHotEncoder.
-    
-    args:
-        preprocessor: Pipeline: scikit.pipeline.Pipeline
-        numeric_features: List
-            List of numeric features
-        categorical_features: List
-            List of categorical features
-    """
-    
-    # Numeric features keep their original names
-    num_features = numeric_features
-    
-    # Get categorical feature names after one-hot encoding
-    cat_encoder = preprocessor.named_transformers_['cat'].named_steps['encoder']
-    cat_features = cat_encoder.get_feature_names_out(categorical_features)
-    
-    # Combine all feature names
-    all_features = list(num_features) + list(cat_features)
-    
-    return all_features
