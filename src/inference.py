@@ -13,12 +13,18 @@ warnings.filterwarnings("ignore")
 
 def evaluate_with_group_kfold(estimator, X, y, groups, random_state=420, verbose=False, **GK_kwargs):
     """
+    It estimate from the estimator object, for each fold belonging to each group, the inference of the ML model. 
+    
     args:
         estimator: an sklearn estimator or Pipeline with 'fit' and 'predict' (and ideally predict_proba)
         X:pd.DataFrame.  Raw df, preprocessor should be inside pipeline to avoid leakage
         y: array-like (1D) or DataFrame with single column "predict" column 
         groups: pd.Series. Series extracted from the df which is the aggregating denominator.
-        kwargs: sklearn.model_selection.GroupKfold parameters.
+        GK_kwargs: sklearn.model_selection.GroupKfold parameters.
+    
+    Returns:
+        scores: dict. 
+            Dictionary of metrics. 
     """
     ## (n,1) array shape
     y_arr = np.asarray(y).ravel()
@@ -80,7 +86,17 @@ def evaluate_with_group_kfold(estimator, X, y, groups, random_state=420, verbose
         scores['confusion_matrix'].append(cm)
 
         if verbose:
+            print("-"*30)
+            print(f"Folder: {i}")
             print(classification_report(y_test, y_pred, zero_division=0))
 
 
     return scores
+
+def describe_kfold_results(df, cols=None):
+    if cols != None:
+        df = df[cols]
+        
+    print(f"Global Results:")
+    for col in df.select_dtypes(include=np.number):
+        print(f"{col}: {df[col].mean():.3f} +- {df[col].std():.3f}")
