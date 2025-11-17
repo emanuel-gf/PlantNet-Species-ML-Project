@@ -132,3 +132,57 @@ def export_cv_clfs_metrics(dict_metrics:dict, export=True, file_name='file', def
         print(f"Metrics exported to: {out_path}")
     
     return results_long
+
+
+def results_to_dataframe(results_dict):
+    """
+    Convert nested results dictionary to a pandas DataFrame.
+    
+    Parameters:
+    -----------
+    results_dict : dict
+        Dictionary with structure: {dataset: {split: {metric: [value]}}}
+    
+    Returns:
+    --------
+    pd.DataFrame
+        DataFrame with columns: dataset, split, and all metrics
+    """
+    import pandas as pd
+    
+    rows = []
+    
+    for dataset_name, dataset_results in results_dict.items():
+        for split_name, metrics in dataset_results.items():
+            row = {
+                'dataset': dataset_name,
+                'split': split_name
+            }
+            
+            # Add each metric (extract single value from list, except confusion_matrix)
+            for metric_name, metric_value in metrics.items():
+                if metric_name == 'confusion_matrix':
+                    # Flatten confusion matrix into separate columns
+                    cm = metric_value
+                    row['cm_tn'] = cm[0, 0]
+                    row['cm_fp'] = cm[0, 1]
+                    row['cm_fn'] = cm[1, 0]
+                    row['cm_tp'] = cm[1, 1]
+                else:
+                    # Extract single value from list
+                    try:
+                        row[metric_name] = metric_value[0] if isinstance(metric_value, list) else metric_value
+                    except Exception:
+                        row[metric_name] = 0.0 
+            rows.append(row)
+    
+    df = pd.DataFrame(rows)
+    
+    # Reorder columns for better readability
+    col_order = ['dataset', 'split', 'accuracy', 'balanced_accuracy', 'precision', 
+                 'recall', 'f1', 'roc_auc', 'cm_tn', 'cm_fp', 'cm_fn', 'cm_tp']
+    
+    # Only keep columns that exist
+    col_order = [col for col in col_order if col in df.columns]
+    
+    return df[col_order]

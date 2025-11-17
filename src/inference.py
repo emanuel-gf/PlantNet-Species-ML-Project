@@ -102,19 +102,12 @@ def describe_kfold_results(df, cols=None):
         print(f"{col}: {df[col].mean():.3f} +- {df[col].std():.3f}")
         
         
-
-def train_test_predict(X_train, X_test, y_train, y_test, models,preprocessor):
+def train_test_predict(X_train, X_test, y_train, y_test, models, preprocessor):
     """
     Predict the model for the given Xtrain and Xtest.
     """
     import numpy as np
     import time
-    ## scores dict
-    scores = {
-            'recall': [], 'precision': [], 'f1': [], 
-            'accuracy': [], 'balanced_accuracy': [], 'roc_auc': [],
-            'confusion_matrix': []
-        }
 
     ## time
     start_time = time.time()
@@ -128,7 +121,7 @@ def train_test_predict(X_train, X_test, y_train, y_test, models,preprocessor):
     ##fit 
     print(f"Training the Model")
     clf.fit(X_train, y_train)
-    print(f"Training time: {np.absolute(time.time()-start_time)}")
+    print(f"Training time: {np.absolute(time.time()-start_time):.3f}s")
     
     ## dict to store
     dict_out = dict()
@@ -137,10 +130,17 @@ def train_test_predict(X_train, X_test, y_train, y_test, models,preprocessor):
     list_loop = [
         ('train', X_train, y_train),
         ('test', X_test, y_test)
-        ]
+    ]
     
     for name, df, y_vec in list_loop:
         print(f"Predicting {name}")
+        
+        # Initialize scores dict for each iteration
+        scores = {
+            'recall': [], 'precision': [], 'f1': [], 
+            'accuracy': [], 'balanced_accuracy': [], 'roc_auc': [],
+            'confusion_matrix': []
+        }
     
         y_pred = clf.predict(df)
 
@@ -148,12 +148,12 @@ def train_test_predict(X_train, X_test, y_train, y_test, models,preprocessor):
         y_score = None
         if hasattr(clf, "predict_proba"):
             try:
-                y_score = clf.predict_proba(X_test)[:, 1]
+                y_score = clf.predict_proba(df)[:, 1]  # Also fixed: was X_test, should be df
             except Exception:
                 y_score = None
         elif hasattr(clf, "decision_function"):
             try:
-                y_score = clf.decision_function(X_test)
+                y_score = clf.decision_function(df)  # Also fixed: was X_test, should be df
             except Exception:
                 y_score = None
 
@@ -175,12 +175,11 @@ def train_test_predict(X_train, X_test, y_train, y_test, models,preprocessor):
 
         # ## CM
         cm = confusion_matrix(y_vec, y_pred, labels=[0,1])
-
         scores['confusion_matrix'] = cm
         
         dict_out[name] = scores 
         
-    time_taken =  time.time() - start_time
+    time_taken = time.time() - start_time
     print(f"Time taken: {time_taken:.2f}")
     
     return dict_out
