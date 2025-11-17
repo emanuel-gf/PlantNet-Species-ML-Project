@@ -1,5 +1,6 @@
 import pandas as pd 
 import fastparquet 
+import os
 
 def if_else_specie(x, specie=2474):
     if int(x)==2474:
@@ -95,6 +96,7 @@ def export_cv_clfs_metrics(dict_metrics:dict, export=True, file_name='file', def
         default_folder = "tmp_csv/"
     
     # Create folder if it doesn't exist
+    import os
     os.makedirs(default_folder, exist_ok=True)
     
     # Check and add .csv extension if not present
@@ -105,6 +107,9 @@ def export_cv_clfs_metrics(dict_metrics:dict, export=True, file_name='file', def
     
     long_data = []
     for model_name, df in dict_metrics.items():
+        if df.empty:
+            continue  # skip empty DataFrames
+        df = df.copy()
         # Add fold index
         df['fold'] = range(1, len(df) + 1)
         
