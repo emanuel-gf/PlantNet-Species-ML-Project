@@ -11,7 +11,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
-def evaluate_with_group_kfold(estimator, X, y, groups, random_state=420, verbose=False, **GK_kwargs):
+def evaluate_with_group_kfold(estimator, X, y, groups, random_state=0, verbose=False, **GK_kwargs):   #random_state=420
     """
     It estimate from the estimator object, for each fold belonging to each group, the inference of the ML model. 
     
