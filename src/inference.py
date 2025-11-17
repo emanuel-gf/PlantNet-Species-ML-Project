@@ -100,3 +100,85 @@ def describe_kfold_results(df, cols=None):
     print(f"Global Results:")
     for col in df.select_dtypes(include=np.number):
         print(f"{col}: {df[col].mean():.3f} +- {df[col].std():.3f}")
+        
+        
+
+def train_test_predict(X_train, X_test, y_train, y_test, models,preprocessor):
+    """
+    Predict the model for the given Xtrain and Xtest.
+    """
+    import numpy as np
+    import time
+    ## scores dict
+    scores = {
+            'recall': [], 'precision': [], 'f1': [], 
+            'accuracy': [], 'balanced_accuracy': [], 'roc_auc': [],
+            'confusion_matrix': []
+        }
+
+    ## time
+    start_time = time.time()
+
+    # Create pipeline
+    clf = Pipeline([
+        ("preproc", preprocessor),
+        (models[0][0], models[0][1])
+    ])
+
+    ##fit 
+    print(f"Training the Model")
+    clf.fit(X_train, y_train)
+    print(f"Training time: {np.absolute(time.time()-start_time)}")
+    
+    ## dict to store
+    dict_out = dict()
+    ## predict 
+    list_loop = [
+        ('train', X_train),
+        ('test', X_test)
+        ]
+    for name, df in list_loop:
+        print(f"Predicting {name}")
+    
+        y_pred = clf.predict(df)
+
+        # Evaluate
+        y_score = None
+        if hasattr(clf, "predict_proba"):
+            try:
+                y_score = clf.predict_proba(X_test)[:, 1]
+            except Exception:
+                y_score = None
+        elif hasattr(clf, "decision_function"):
+            try:
+                y_score = clf.decision_function(X_test)
+            except Exception:
+                y_score = None
+
+        # Metrics
+        print(f"Calculating metrics...")
+        scores['recall'].append(recall_score(y_test, y_pred, average='weighted'))
+        scores['precision'].append(precision_score(y_test, y_pred, average='weighted'))
+        scores['f1'].append(f1_score(y_test, y_pred, average='weighted'))
+        scores['accuracy'].append(accuracy_score(y_test, y_pred))
+        scores['balanced_accuracy'].append(balanced_accuracy_score(y_test, y_pred))  
+
+        ## Calc ROC-AUC
+        if y_score is not None and len(np.unique(y_pred)) > 1:
+            try:
+                roc = roc_auc_score(y_train, y_score)
+                scores['roc_auc'].append(roc)
+            except Exception:
+                roc = None
+
+        # ## CM
+        cm = confusion_matrix(y_test, y_pred, labels=[0,1])
+
+        scores['confusion_matrix'] = cm
+        
+        dict_out[name] = scores 
+        
+    time_taken =  time.time() - start_time
+    print(f"Time taken: {time_taken:.2f}")
+    
+    return dict_out

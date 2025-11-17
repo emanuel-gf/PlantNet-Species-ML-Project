@@ -1,6 +1,6 @@
 import pandas as pd 
 import fastparquet 
-
+import os
 def if_else_specie(x, specie=2474):
     if int(x)==2474:
         return 1
@@ -106,7 +106,8 @@ def export_cv_clfs_metrics(dict_metrics:dict, export=True, file_name='file', def
     long_data = []
     for model_name, df in dict_metrics.items():
         # Add fold index
-        df['fold'] = range(1, len(df) + 1)
+        if 'fold' not in df.columns: 
+            df['fold'] = range(1, len(df) + 1)
         
         ## reshape confusion matrix
         # Melt to long format
@@ -115,7 +116,6 @@ def export_cv_clfs_metrics(dict_metrics:dict, export=True, file_name='file', def
         df_long['model'] = model_name
         
         ##reshape confusion matrix
-        df_long
         long_data.append(df_long)
 
     # Combine all models
