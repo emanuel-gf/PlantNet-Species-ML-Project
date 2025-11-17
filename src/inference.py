@@ -132,12 +132,14 @@ def train_test_predict(X_train, X_test, y_train, y_test, models,preprocessor):
     
     ## dict to store
     dict_out = dict()
+    
     ## predict 
     list_loop = [
-        ('train', X_train),
-        ('test', X_test)
+        ('train', X_train, y_train),
+        ('test', X_test, y_test)
         ]
-    for name, df in list_loop:
+    
+    for name, df, y_vec in list_loop:
         print(f"Predicting {name}")
     
         y_pred = clf.predict(df)
@@ -157,22 +159,22 @@ def train_test_predict(X_train, X_test, y_train, y_test, models,preprocessor):
 
         # Metrics
         print(f"Calculating metrics...")
-        scores['recall'].append(recall_score(y_test, y_pred, average='weighted'))
-        scores['precision'].append(precision_score(y_test, y_pred, average='weighted'))
-        scores['f1'].append(f1_score(y_test, y_pred, average='weighted'))
-        scores['accuracy'].append(accuracy_score(y_test, y_pred))
-        scores['balanced_accuracy'].append(balanced_accuracy_score(y_test, y_pred))  
+        scores['recall'].append(recall_score(y_vec, y_pred, average='weighted'))
+        scores['precision'].append(precision_score(y_vec, y_pred, average='weighted'))
+        scores['f1'].append(f1_score(y_vec, y_pred, average='weighted'))
+        scores['accuracy'].append(accuracy_score(y_vec, y_pred))
+        scores['balanced_accuracy'].append(balanced_accuracy_score(y_vec, y_pred))  
 
         ## Calc ROC-AUC
         if y_score is not None and len(np.unique(y_pred)) > 1:
             try:
-                roc = roc_auc_score(y_train, y_score)
+                roc = roc_auc_score(y_vec, y_score)
                 scores['roc_auc'].append(roc)
             except Exception:
                 roc = None
 
         # ## CM
-        cm = confusion_matrix(y_test, y_pred, labels=[0,1])
+        cm = confusion_matrix(y_vec, y_pred, labels=[0,1])
 
         scores['confusion_matrix'] = cm
         
