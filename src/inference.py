@@ -118,10 +118,12 @@ def train_test_predict(X_train, X_test, y_train, y_test, models, preprocessor):
         (models[0][0], models[0][1])
     ])
 
-    ##fit 
+    ## FIT
     print(f"Training the Model")
     clf.fit(X_train, y_train)
     print(f"Training time: {np.absolute(time.time()-start_time):.3f}s")
+    
+    ## INFERENCE
     
     ## dict to store
     dict_out = dict()
@@ -132,10 +134,10 @@ def train_test_predict(X_train, X_test, y_train, y_test, models, preprocessor):
         ('test', X_test, y_test)
     ]
     
-    for name, df, y_vec in list_loop:
+    for name, df, y_vec in list_loop: # Loop the train and test data to calculate the metrics
         print(f"Predicting {name}")
         
-        # Initialize scores dict for each iteration
+        # scores dict for each iteration
         scores = {
             'recall': [], 'precision': [], 'f1': [], 
             'accuracy': [], 'balanced_accuracy': [], 'roc_auc': [],
@@ -144,16 +146,16 @@ def train_test_predict(X_train, X_test, y_train, y_test, models, preprocessor):
     
         y_pred = clf.predict(df)
 
-        # Evaluate
+        # evaluate
         y_score = None
         if hasattr(clf, "predict_proba"):
             try:
-                y_score = clf.predict_proba(df)[:, 1]  # Also fixed: was X_test, should be df
+                y_score = clf.predict_proba(df)[:, 1]  
             except Exception:
                 y_score = None
         elif hasattr(clf, "decision_function"):
             try:
-                y_score = clf.decision_function(df)  # Also fixed: was X_test, should be df
+                y_score = clf.decision_function(df)
             except Exception:
                 y_score = None
 
